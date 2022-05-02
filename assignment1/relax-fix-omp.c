@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <omp.h>
 
 //
 // allocate a a flattened matrix of "nxn" elements
@@ -23,6 +24,7 @@ void init( double *out, size_t n)
 {
    size_t i,j;
 
+   #pragma omp parallel for
    for( i=0; i<n; i++) {
       for( j=0; j<n; j++) {
          out[i*n+j] = i + j;
@@ -63,6 +65,7 @@ void print( double *out, size_t n)
 void relax( double *in, double *out, size_t n)
 {
    size_t i,j;
+   #pragma omp parallel for
    for( i=1; i<n-1; i++) {
       for( j=1; j<n-1; j++) {
          out[i*n+j] = 0.25*in[(i-1)*n+j]      // upper neighbour

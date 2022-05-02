@@ -36,6 +36,7 @@ in pkgs.stdenv.mkDerivation rec {
       pkgs.valgrind
       pkgs.automake
       pkgs.gperftools
+      pkgs.graphviz
     ];
 
     phases = [];

@@ -1,0 +1,4 @@
+relax-fix
+relax-fix-omp
+callgrind.out.*
+*.png

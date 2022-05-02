@@ -1,7 +1,7 @@
-CFLAGS := -O3 -g -fopenmp
+CFLAGS := -O3 -pg -fopenmp
 
 CC := gcc
-EXECUTABLE := relax-fix
+EXECUTABLE := relax-fix relax-fix-omp
 
 all: $(EXECUTABLE)
 
