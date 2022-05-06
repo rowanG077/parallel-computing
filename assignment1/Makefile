@@ -1,12 +1,14 @@
-CFLAGS := -O3 -pg -fopenmp
-
 CC := gcc
-EXECUTABLE := relax-fix relax-fix-omp
+CFLAGS := -O3 -g -march=native
+LDFLAGS := -lprofiler
 
-all: $(EXECUTABLE)
+all: single openmp
 
-%: %.c
-	$(CC) -o $@ $< $(CFLAGS)
+single: relax-fix.c
+	$(CC) $(CFLAGS) $? $(LDFLAGS) -o $@
+
+openmp: relax-fix.c
+	$(CC) -fopenmp $(CFLAGS) $? $(LDFLAGS) -o $@
 
 clean:
 	rm -f $(EXECUTABLE)

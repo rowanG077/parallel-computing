@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <time.h>
+#include <sys/time.h>
 
 //
 // allocate a a flattened matrix of "nxn" elements
@@ -23,6 +29,7 @@ void init( double *out, size_t n)
 {
    size_t i,j;
 
+   #pragma omp parallel for private(j)
    for( i=0; i<n; i++) {
       for( j=0; j<n; j++) {
          out[i*n+j] = i + j;
@@ -63,6 +70,7 @@ void print( double *out, size_t n)
 void relax( double *in, double *out, size_t n)
 {
    size_t i,j;
+   #pragma omp parallel for
    for( i=1; i<n-1; i++) {
       for( j=1; j<n-1; j++) {
          out[i*n+j] = 0.25*in[(i-1)*n+j]      // upper neighbour
@@ -76,10 +84,15 @@ void relax( double *in, double *out, size_t n)
 
 int main (int argc, char *argv[])
 {
+   struct timespec t1, t2, t3, t4;
    double *a,*b, *tmp;
    size_t n=0;
    int i;
    int max_iter;
+
+   if (clock_gettime(CLOCK_MONOTONIC, &t1) != 0) {
+      return -1;
+   }
 
    if( argc < 3) {
       printf("call should have two arguments \"%s <n> <iter>\"\n", argv[0]);
@@ -113,6 +126,10 @@ int main (int argc, char *argv[])
 
    print(a, n);
 
+   if (clock_gettime(CLOCK_MONOTONIC, &t2) != 0) {
+      return -1;
+   }
+
    for( i=0; i<max_iter; i++) {
       tmp = a;
       a = b;
@@ -120,8 +137,30 @@ int main (int argc, char *argv[])
       relax( a, b, n);
    }
 
+   if (clock_gettime(CLOCK_MONOTONIC, &t3) != 0) {
+      return -1;
+   }
+
+   double timeSpendRelax = ((double)t3.tv_sec - (double)t2.tv_sec)
+      + ((double)t3.tv_nsec - (double)t2.tv_nsec) / 1000000000.0;
+
+   double gflop = (5.0 * (double)n * (double)n * (double)max_iter) / 1000000000.0;
+
    printf( "Matrix after %d iterations:\n", i);
    print( b, n);
+
+
+   if (clock_gettime(CLOCK_MONOTONIC, &t4) != 0) {
+      return -1;
+   }
+
+   double timeSpendTotal = ((double)t4.tv_sec - (double)t1.tv_sec)
+      + ((double)t4.tv_nsec - (double)t1.tv_nsec) / 1000000000.0;
+
+   printf("Size: %.6f\n", gflop / timeSpendRelax);
+   printf("Time spend relax: %.6f seconds\n", timeSpendRelax);
+   printf("Time spend total: %.6f seconds\n", timeSpendTotal);
+   printf("Computation: %.6f GFLOP/s\n", gflop / timeSpendRelax);
 
    return 0;
 }

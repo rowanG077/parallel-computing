@@ -1,4 +1,5 @@
-relax-fix
-relax-fix-omp
+openmp
+single
+prof.out
 callgrind.out.*
 *.png

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #SBATCH --partition=csedu
 #SBATCH --output=output/std_%A_%a.txt
 #SBATCH --error=output/%A_%a.err
