@@ -53,9 +53,7 @@ def run(numThreads, matrixSize, iterations, sched):
 if __name__ == "__main__":
     SCHEDULERS = ["dynamic", "guided", "static"]
 
-    INIT_THREADS = 0
-    MAX_THREADS = 8
-    STEP_THREAD = 2
+    THREADS = [0, 2, 4]
     ITERATIONS = 50
 
     MATRIX_SIZES = [800, 3200, 6400, 12800, 25600]
@@ -64,7 +62,7 @@ if __name__ == "__main__":
 
     dataPoints = []
 
-    for numThreads in range(INIT_THREADS, MAX_THREADS + 1, STEP_THREAD):
+    for numThreads in THREADS:
         for matrixSize in MATRIX_SIZES:
             scheds = ["N/A"] if numThreads == 0 else SCHEDULERS
             for sched in scheds:
@@ -80,7 +78,7 @@ if __name__ == "__main__":
                 }
 
                 for i in range(REPEAT):
-                    print(f"sched: {sched}, {i}/{REPEAT}, threads: {numThreads}/{MAX_THREADS}, matrixSize: {matrixSize}, iterations: {ITERATIONS}")
+                    print(f"sched: {sched}, {i}/{REPEAT}, threads: {numThreads}/{THREADS[-1]}, matrixSize: {matrixSize}, iterations: {ITERATIONS}")
 
                     relaxTime, totalTime, gflops = run(numThreads, matrixSize, ITERATIONS, sched)
 
