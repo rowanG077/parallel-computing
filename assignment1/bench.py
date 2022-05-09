@@ -53,16 +53,18 @@ def run(numThreads, matrixSize, iterations, sched):
 if __name__ == "__main__":
     SCHEDULERS = ["dynamic", "guided", "static"]
 
-    THREADS = [0, 1, 2, 4, 8]
-    ITERATIONS = 200
+    INIT_THREADS = 0
+    MAX_THREADS = 8
+    STEP_THREAD = 2
+    ITERATIONS = 50
 
     MATRIX_SIZES = [800, 3200, 6400, 12800, 25600]
 
-    REPEAT = 5
+    REPEAT = 3
 
     dataPoints = []
 
-    for numThreads in THREADS:
+    for numThreads in range(INIT_THREADS, MAX_THREADS + 1, STEP_THREAD):
         for matrixSize in MATRIX_SIZES:
             scheds = ["N/A"] if numThreads == 0 else SCHEDULERS
             for sched in scheds:
@@ -88,6 +90,5 @@ if __name__ == "__main__":
 
                 dataPoints.append(dataPoint)
 
-    json_string = json.dumps(dataPoints)
-    with open('Results.json', 'w') as f:
-        f.write(json_string)
+                with open("Results.json", "w") as file:
+                    json.dump(dataPoints, file)
