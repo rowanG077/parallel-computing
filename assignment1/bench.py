@@ -3,13 +3,15 @@ import os
 import sys
 import re
 import ctypes
+import json
 
-def run(numThreads, matrixSize, iterations):
+def run(numThreads, matrixSize, iterations, sched):
     prog = "./single" if numThreads == 0 else "./openmp"
 
     bench_env = os.environ.copy()
 
     bench_env["OMP_NUM_THREADS"] = str(numThreads)
+    bench_env["OMP_SCHEDULE"] = sched
 
     args = [prog, str(matrixSize), str(iterations)]
     p = subprocess.Popen(args, env=bench_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -26,16 +28,22 @@ def run(numThreads, matrixSize, iterations):
 
     m = None
     if (m := re.search(relaxTimeRe, out)) == None:
+        print(out)
+        print(err)
         raise Exception("relax time not found in output")
     
     relaxTime = float(m.group(1))
 
     if (m := re.search(totalTimeRe, out)) == None:
+        print(out)
+        print(err)
         raise Exception("Time spend total not found in output")
     
     totalTime = float(m.group(1))
 
     if (m := re.search(gflopsRe, out)) == None:
+        print(out)
+        print(err)
         raise Exception("Gflop not found in output")
     
     gflops = float(m.group(1))
@@ -43,39 +51,38 @@ def run(numThreads, matrixSize, iterations):
     return relaxTime, totalTime, gflops
 
 if __name__ == "__main__":
+    SCHEDULERS = ["dynamic", "guided", "static"]
+
     INIT_THREADS = 0
-    MAX_THREADS = 4
-    STEP_THREAD = 1
+    MAX_THREADS = 6
+    STEP_THREAD = 2
+    ITERATIONS = 200
 
-    INIT_MATRIX = 100
-    MAX_MATRIX = 1000
-    STEP_MATRIX = 100
-
-    INIT_ITERATIONS = 500
-    MAX_ITERATIONS = 1500
-    STEP_ITERATIONS = 500
+    MATRIX_SIZES = [800, 3200, 6400, 12800, 25600]
 
     REPEAT = 5
 
     dataPoints = []
 
     for numThreads in range(INIT_THREADS, MAX_THREADS + 1, STEP_THREAD):
-        for matrixSize in range(INIT_MATRIX, MAX_MATRIX + 1, STEP_MATRIX):
-            for iterations in range(INIT_ITERATIONS, MAX_ITERATIONS + 1, STEP_ITERATIONS):
+        for matrixSize in MATRIX_SIZES:
+            scheds = ["N/A"] if numThreads == 0 else SCHEDULERS
+            for sched in scheds:
                 dataPoint = {
                     "relaxTime": [],
                     "totalTime": [],
                     "gflop/s": [],
                     "matrixSize": matrixSize,
-                    "iterations": iterations,
+                    "iterations": ITERATIONS,
                     "numCores": numThreads,
+                    "sched": sched,
                     "size": (float(matrixSize)**2 * ctypes.sizeof(ctypes.c_double)) / (1024**2)
                 }
 
                 for i in range(REPEAT):
-                    print(f"{i}/{REPEAT}, threads: {numThreads}/{MAX_THREADS}, matrixSize: {matrixSize}/{MAX_MATRIX}, iterations: {iterations}/{MAX_ITERATIONS}")
+                    print(f"sched: {sched}, {i}/{REPEAT}, threads: {numThreads}/{MAX_THREADS}, matrixSize: {matrixSize}, iterations: {ITERATIONS}")
 
-                    relaxTime, totalTime, gflops = run(numThreads, matrixSize, iterations)
+                    relaxTime, totalTime, gflops = run(numThreads, matrixSize, ITERATIONS, sched)
 
                     dataPoint["relaxTime"].append(relaxTime)
                     dataPoint["totalTime"].append(totalTime)
@@ -83,5 +90,6 @@ if __name__ == "__main__":
 
                 dataPoints.append(dataPoint)
 
-    # generate graphs
-    # generateGraphs(dataPoints)
+    json_string = json.dumps(dataPoints)
+    with open('Results.json', 'w') as f:
+        f.write(json_string)

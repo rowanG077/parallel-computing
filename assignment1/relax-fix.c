@@ -70,7 +70,7 @@ void print( double *out, size_t n)
 void relax( double *in, double *out, size_t n)
 {
    size_t i,j;
-   #pragma omp parallel for
+   #pragma omp parallel for schedule(runtime)
    for( i=1; i<n-1; i++) {
       for( j=1; j<n-1; j++) {
          out[i*n+j] = 0.25*in[(i-1)*n+j]      // upper neighbour
@@ -157,7 +157,6 @@ int main (int argc, char *argv[])
    double timeSpendTotal = ((double)t4.tv_sec - (double)t1.tv_sec)
       + ((double)t4.tv_nsec - (double)t1.tv_nsec) / 1000000000.0;
 
-   printf("Size: %.6f\n", gflop / timeSpendRelax);
    printf("Time spend relax: %.6f seconds\n", timeSpendRelax);
    printf("Time spend total: %.6f seconds\n", timeSpendTotal);
    printf("Computation: %.6f GFLOP/s\n", gflop / timeSpendRelax);

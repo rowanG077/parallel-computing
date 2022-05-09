@@ -26,10 +26,12 @@ let
 
   pythonPackages = pkgs.python39Packages;
 
-in pkgs.stdenv.mkDerivation rec {
+in pkgs.mkShell rec {
     name = "parallel-computing-dev";
 
-    buildInputs = [
+    packages = [
+      pythonPackages.jupyter
+      pythonPackages.pandas
       pythonPackages.python
       pythonPackages.matplotlib
       pythonPackages.gprof2dot
